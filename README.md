@@ -25,8 +25,9 @@ crucially, the **verification** step that most grep-and-pray scripts skip:
 
 - 🔎 **Searches smart** — drives the GitHub Code Search API with a curated set of
   Shodan-specific patterns instead of one naive string.
-- 🌐 **Format-agnostic** — no language filter. Catches keys in `.py`, `.env`,
-  `.php`, `.js`, YAML and plain config alike — quoted or bare.
+- 🎯 **Scoped where keys leak** — searches `.py`, `.js`, `.ts`, `.json` and `.env`
+  files, quoted or bare. Targeted scopes mean fewer downloads and a much faster
+  sweep than a blind crawl.
 - ✅ **Validates live** — every candidate is checked against `api.shodan.io`; only
   keys with real, usable credits make it to your output.
 - 🧠 **Respects rate limits** — honours `Retry-After` / `X-RateLimit-Reset` headers
@@ -52,8 +53,8 @@ crucially, the **verification** step that most grep-and-pray scripts skip:
 ```
 
 1. Read patterns from `keywords/shodan.txt` (one query per line).
-2. For each pattern, page through GitHub Code Search results — across **every**
-   language and file type.
+2. For each pattern, search GitHub Code Search scoped to the file types where
+   keys leak — `.py`, `.js`, `.ts`, `.json`, `.env`.
 3. Download each matching file and extract any isolated 32-character token near
    the keyword — quoted or bare.
 4. Hit the Shodan `api-info` endpoint. If the key has **≥ 50 query credits**, it's
@@ -108,8 +109,9 @@ sd=shodan(
 ```
 
 Point ShodanHound at more keyword files by editing the `KEYWORD_FILES` array at
-the top of `shodanhound.mjs`. Searches run with **no language filter**, so a
-single pattern sweeps Python, PHP, JS, `.env` and config files all at once.
+the top of `shodanhound.mjs`. Each pattern is searched across every scope in the
+`SCOPES` array (`.py`, `.js`, `.ts`, `.json`, `.env` by default) — add or remove
+scopes there to tune coverage vs. speed.
 
 ---
 

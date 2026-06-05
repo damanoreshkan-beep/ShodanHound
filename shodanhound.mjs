@@ -14,6 +14,16 @@ const SHODAN_API = 'https://api.shodan.io';
 const MIN_CREDITS = 50;          // only save keys with at least this many query credits
 const KEYWORD_FILES = ['keywords/shodan.txt'];
 
+// Scope each search to the file types where Shodan keys actually leak. Far fewer
+// results than an unscoped sweep → way fewer file downloads → much faster.
+const SCOPES = [
+  'language:python',
+  'language:javascript',
+  'language:typescript',
+  'language:json',
+  'filename:.env',
+];
+
 const seen = new Set();          // dedupe keys within a run
 
 const now = () => new Date().toLocaleString('uk-UA');
@@ -82,9 +92,8 @@ function extractCandidates(content, keyword) {
   return out;
 }
 
-async function searchKeyword(token, outFile, keyword) {
-  // No language scoping — cast the widest net across every file type on GitHub.
-  const q = keyword;
+async function searchKeyword(token, outFile, keyword, scope) {
+  const q = `${scope} ${keyword}`;
   console.log(`${now()} — query: '${q}'`);
 
   // Code search is paginated; 100/page, hard cap of 1000 results.
@@ -137,7 +146,9 @@ async function main() {
       .filter(Boolean);
 
     for (const keyword of keywords) {
-      await searchKeyword(token, outFile, keyword);
+      for (const scope of SCOPES) {
+        await searchKeyword(token, outFile, keyword, scope);
+      }
     }
   }
 
