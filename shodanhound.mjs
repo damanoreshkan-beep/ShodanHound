@@ -12,7 +12,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 const GH_API = 'https://api.github.com';
 const SHODAN_API = 'https://api.shodan.io';
 const MIN_CREDITS = 50;          // only save keys with at least this many query credits
-const KEYWORD_FILES = ['keywords/shodan-python.txt'];
+const KEYWORD_FILES = ['keywords/shodan.txt'];
 
 const seen = new Set();          // dedupe keys within a run
 
@@ -65,23 +65,26 @@ async function checkShodanKey(key, outFile) {
   }
 }
 
+// A Shodan key is an isolated 32-char alphanumeric token. The negative
+// look-arounds reject substrings of longer hashes/ids.
+const TOKEN_RE = /(?<![A-Za-z0-9])[A-Za-z0-9]{32}(?![A-Za-z0-9])/g;
+
 function extractCandidates(content, keyword) {
-  // Find `keyword"..."` or `keyword'...'` where the quoted value is 32 chars.
+  // Format-agnostic: on any line mentioning the keyword (quotes, `=`, spaces and
+  // case ignored), grab every bounded 32-char token — quoted or not. Works for
+  // .py, .env, .php, .js, yaml, configs… The Shodan API validates the rest.
   const out = [];
   for (const original of content.split('\n')) {
-    const line = original.trim().toLowerCase().replace(/ /g, '');
-    let quote = null;
-    if (line.includes(keyword + '"')) quote = '"';
-    else if (line.includes(keyword + "'")) quote = "'";
-    if (!quote) continue;
-    const parts = original.split(quote);
-    if (parts[1] && parts[1].length === 32) out.push(parts[1]);
+    const norm = original.toLowerCase().replace(/\s/g, '');
+    if (!norm.includes(keyword)) continue;
+    for (const token of original.match(TOKEN_RE) ?? []) out.push(token);
   }
   return out;
 }
 
-async function searchKeyword(token, outFile, keyword, language) {
-  const q = `${language}${keyword}`;
+async function searchKeyword(token, outFile, keyword) {
+  // No language scoping — cast the widest net across every file type on GitHub.
+  const q = keyword;
   console.log(`${now()} — query: '${q}'`);
 
   // Code search is paginated; 100/page, hard cap of 1000 results.
@@ -128,14 +131,13 @@ async function main() {
   await writeFile(outFile, '', { flag: 'a' });  // ensure file exists
 
   for (const file of KEYWORD_FILES) {
-    const language = file.includes('python') ? 'language:python ' : '';
     const keywords = (await readFile(file, 'utf-8'))
       .split('\n')
       .map((l) => l.trim())
       .filter(Boolean);
 
     for (const keyword of keywords) {
-      await searchKeyword(token, outFile, keyword, language);
+      await searchKeyword(token, outFile, keyword);
     }
   }
 

@@ -10,3 +10,10 @@ shodan_api=shodan(
 shodan_api=shodan.shodan(
 shodankey=
 shodan_key=
+shodan_token=
+shodan_secret=
+shodanapikey=
+shodan_api_key:
+shodan_api_key"
+"shodan":
+shodan_apikey=
