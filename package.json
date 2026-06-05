@@ -1,0 +1,32 @@
+{
+  "name": "shodanhound",
+  "version": "1.0.0",
+  "description": "Hunt leaked Shodan API keys across public GitHub and validate them live — zero dependencies.",
+  "type": "module",
+  "bin": {
+    "shodanhound": "shodanhound.mjs"
+  },
+  "scripts": {
+    "start": "node shodanhound.mjs"
+  },
+  "keywords": [
+    "shodan",
+    "security",
+    "osint",
+    "api-keys",
+    "secret-scanning",
+    "github",
+    "leaked-credentials",
+    "pentest",
+    "recon"
+  ],
+  "license": "MIT",
+  "author": "damanoreshkan-beep",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/damanoreshkan-beep/ShodanHound.git"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

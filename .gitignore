@@ -1,0 +1,13 @@
+# Never commit harvested keys — these are live secrets
+keys.out
+*.out
+*.keys
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Env / tokens
+.env
+.env.*
+*.token
