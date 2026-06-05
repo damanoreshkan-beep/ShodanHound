@@ -1,7 +1,9 @@
-# Never commit harvested keys — these are live secrets
+# Never commit harvested keys or run logs — these contain live secrets
 keys.out
 *.out
 *.keys
+*.log
+run.log
 
 # Node
 node_modules/
